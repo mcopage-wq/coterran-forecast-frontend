@@ -802,24 +802,8 @@ export default function App() {
             <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg p-8 text-white">
               <h3 className="text-2xl font-bold mb-4">About COTERRAN Forecasting</h3>
               <p className="text-cyan-50 leading-relaxed mb-4">
-                COTERRAN&apos;s forecasting platform harnesses the wisdom of climate experts to generate accurate 
-                predictions on critical climate and security outcomes. By aggregating expert forecasts, we create 
-                consensus predictions that inform policy decisions and research priorities.
+                CoTerran&apos;s forecasting platform is intended to build discussion about the probable consequences and impacts of our changing climate. In this initial phase it is focusing on engaging and aggregating views from climate experts. The cumulative accuracy of these forecasts may produce useful insights for policy analysis and adaptation planning. 
               </p>
-              <div className="grid md:grid-cols-3 gap-4 mt-6">
-                <div className="bg-white bg-opacity-10 rounded p-4">
-                  <h4 className="font-bold mb-2">Expert-Driven</h4>
-                  <p className="text-sm text-cyan-50">Vetted experts from climate science, policy, and security domains</p>
-                </div>
-                <div className="bg-white bg-opacity-10 rounded p-4">
-                  <h4 className="font-bold mb-2">Data-Backed</h4>
-                  <p className="text-sm text-cyan-50">All markets resolve against authoritative data sources</p>
-                </div>
-                <div className="bg-white bg-opacity-10 rounded p-4">
-                  <h4 className="font-bold mb-2">Track Record</h4>
-                  <p className="text-sm text-cyan-50">Performance metrics help identify top forecasters</p>
-                </div>
-              </div>
             </div>
           </div>
         )}
