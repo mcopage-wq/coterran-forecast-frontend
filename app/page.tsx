@@ -19,18 +19,18 @@ type Market = {
   category: string;
   close_date: string;
   status: string;
-  outcome?: number;
+  outcome?: number | string;
   resolution_source?: string;
   resolution_criteria: string;
   data_source?: string;
   prediction_count: number;
-  median_prediction?: number;
-  mean_prediction?: number;
+  median_prediction?: number | string;
+  mean_prediction?: number | string;
 };
 
 type Prediction = {
   id: string;
-  prediction: number;
+  prediction: number | string;
   confidence: string;
   reasoning: string;
   created_at: string;
@@ -453,7 +453,7 @@ export default function App() {
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Consensus</p>
                         <p className="font-bold text-cyan-600">
-                          {market.median_prediction ? `${market.median_prediction.toFixed(0)}%` : 'N/A'}
+                          {market.median_prediction ? `${Number(market.median_prediction).toFixed(0)}%` : 'N/A'}
                         </p>
                       </div>
                       <div>
@@ -509,11 +509,11 @@ export default function App() {
                   <>
                     <div>
                       <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">Consensus (Median)</p>
-                      <p className="text-3xl font-bold text-cyan-600">{selectedMarket.median_prediction?.toFixed(1)}%</p>
+                      <p className="text-3xl font-bold text-cyan-600">{Number(selectedMarket.median_prediction).toFixed(1)}%</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">Mean Prediction</p>
-                      <p className="text-3xl font-bold text-gray-700">{selectedMarket.mean_prediction?.toFixed(1)}%</p>
+                      <p className="text-3xl font-bold text-gray-700">{Number(selectedMarket.mean_prediction).toFixed(1)}%</p>
                     </div>
                   </>
                 )}
@@ -536,7 +536,7 @@ export default function App() {
                     <Award className="w-6 h-6" />
                     <h3 className="font-bold text-lg uppercase tracking-wide">Market Resolved</h3>
                   </div>
-                  <p className="text-3xl font-bold mb-2">Outcome: {selectedMarket.outcome}%</p>
+                  <p className="text-3xl font-bold mb-2">Outcome: {Number(selectedMarket.outcome).toFixed(1)}%</p>
                   {selectedMarket.resolution_source && (
                     <p className="text-sm text-cyan-100">Source: {selectedMarket.resolution_source}</p>
                   )}
@@ -622,7 +622,7 @@ export default function App() {
                           <p className="text-xs text-gray-500">{new Date(pred.created_at).toLocaleString()}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-cyan-600">{pred.prediction}%</p>
+                          <p className="text-2xl font-bold text-cyan-600">{Number(pred.prediction).toFixed(0)}%</p>
                           <p className="text-xs text-gray-600 uppercase tracking-wide">{pred.confidence}</p>
                         </div>
                       </div>
