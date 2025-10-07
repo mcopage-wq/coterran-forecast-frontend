@@ -385,7 +385,7 @@ export default function App() {
     }
   }
 
-  async function approveMarket(marketId: string, updatedData?: any) {
+  async function approveMarket(marketId: string, updatedData?: Record<string, unknown>) {
     try {
       const response = await fetch(`${API_URL}/admin/markets/${marketId}/approve`, {
         method: 'POST',
