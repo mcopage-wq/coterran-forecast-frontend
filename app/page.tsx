@@ -1,10 +1,17 @@
 'use client';
 import { useState } from 'react';
+type User = {
+  id: string;
+  email: string;
+  fullName: string;
+  organization: string;
+  isAdmin: boolean;
+};
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
