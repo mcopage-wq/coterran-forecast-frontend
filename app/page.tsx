@@ -1083,7 +1083,7 @@ export default function App() {
                           <div className="inline-block p-4 bg-cyan-50 rounded-full mb-4">
                             <AlertCircle className="w-8 h-8 text-cyan-600" />
                           </div>
-                          <h3 className="text-xl font-bold text-gray-900 mb-2">You've Already Predicted</h3>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">You&apos;ve Already Predicted</h3>
                           <p className="text-gray-600 mb-1">Your current prediction: <span className="font-bold text-cyan-600 text-2xl">{Number(myExistingPrediction.prediction).toFixed(0)}%</span></p>
                           <p className="text-sm text-gray-500">Confidence: {myExistingPrediction.confidence}</p>
                         </div>
