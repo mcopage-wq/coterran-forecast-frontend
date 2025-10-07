@@ -8,7 +8,7 @@ type User = {
   isAdmin: boolean;
 };
 
-const API_URL = 'https://coterran-forecast-production.up.railway.app/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://coterran-forecast-production.up.railway.app/api';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
