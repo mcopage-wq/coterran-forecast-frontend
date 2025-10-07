@@ -21,6 +21,7 @@ type Market = {
   status: string;
   outcome?: number;
   resolution_source?: string;
+  resolution_criteria: string;
   data_source?: string;
   prediction_count: number;
   median_prediction?: number;
