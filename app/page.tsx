@@ -162,6 +162,7 @@ export default function App() {
     if (token) {
       fetchCurrentUser(token);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -273,8 +274,8 @@ export default function App() {
         const data = await response.json();
         throw new Error(data.error || 'Failed to send reset email');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email');
     }
   }
 
@@ -300,8 +301,8 @@ export default function App() {
       } else {
         throw new Error('Failed to update profile');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
     }
   }
 
@@ -336,8 +337,8 @@ export default function App() {
         const data = await response.json();
         throw new Error(data.error || 'Failed to change password');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to change password');
     }
   }
 
