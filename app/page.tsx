@@ -43,10 +43,20 @@ export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [view, setView] = useState<'markets' | 'create' | 'detail'>('markets');
+  const [view, setView] = useState<'markets' | 'create' | 'detail' | 'admin'>('markets');
   const [markets, setMarkets] = useState<Market[]>([]);
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+  const [showRegister, setShowRegister] = useState(false);
+  const [registerData, setRegisterData] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    organization: '',
+    expertiseArea: '',
+    bio: ''
+  });
   const [loading, setLoading] = useState(false);
   const [predictionValue, setPredictionValue] = useState(50);
   const [confidence, setConfidence] = useState('medium');
@@ -122,6 +132,67 @@ export default function App() {
     localStorage.removeItem('token');
     setUser(null);
     setView('markets');
+  }
+
+  function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(registerData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.error || 'Registration failed');
+        });
+      }
+      return response.json();
+    })
+    .then(() => {
+      setRegisterData({
+        email: '',
+        password: '',
+        fullName: '',
+        organization: '',
+        expertiseArea: '',
+        bio: ''
+      });
+      setShowRegister(false);
+      setError('Registration successful! Your account is pending approval from an administrator.');
+    })
+    .catch(err => {
+      setError(err.message);
+    });
+  }
+
+  async function fetchPendingUsers() {
+    try {
+      const response = await fetch(`${API_URL}/admin/users/pending`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPendingUsers(data.users);
+      }
+    } catch (err) {
+      console.error('Failed to fetch pending users', err);
+    }
+  }
+
+  async function approveUser(userId: string) {
+    try {
+      const response = await fetch(`${API_URL}/admin/users/${userId}/approve`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        fetchPendingUsers();
+      }
+    } catch (err) {
+      console.error('Failed to approve user', err);
+    }
   }
 
   async function fetchMarkets() {
@@ -275,6 +346,106 @@ export default function App() {
   }
 
   if (!user) {
+    if (showRegister) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
+            <div className="text-center mb-8">
+              <div className="mb-4">
+                <h1 className="text-3xl font-bold text-gray-900 tracking-wide">COTERRAN</h1>
+                <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Climate and Security Advisory</p>
+              </div>
+              <div className="h-1 w-20 bg-cyan-500 mx-auto mb-4"></div>
+              <h2 className="text-xl font-semibold text-gray-800">Expert Registration</h2>
+              <p className="text-gray-600 text-sm mt-2">Apply for platform access</p>
+            </div>
+            
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                <input
+                  type="text"
+                  value={registerData.fullName}
+                  onChange={(e) => setRegisterData({...registerData, fullName: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Dr. Jane Smith"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                <input
+                  type="email"
+                  value={registerData.email}
+                  onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="jane.smith@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                <input
+                  type="password"
+                  value={registerData.password}
+                  onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Min. 8 characters"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Organization *</label>
+                <input
+                  type="text"
+                  value={registerData.organization}
+                  onChange={(e) => setRegisterData({...registerData, organization: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="University of Melbourne"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Expertise Area</label>
+                <input
+                  type="text"
+                  value={registerData.expertiseArea}
+                  onChange={(e) => setRegisterData({...registerData, expertiseArea: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Climate Science, Marine Biology, etc."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                <textarea
+                  value={registerData.bio}
+                  onChange={(e) => setRegisterData({...registerData, bio: e.target.value})}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Brief description of your expertise..."
+                />
+              </div>
+              <button
+                onClick={handleRegister}
+                className="w-full bg-cyan-500 text-white py-3 rounded hover:bg-cyan-600 transition-colors font-medium"
+              >
+                Submit Application
+              </button>
+              <button
+                onClick={() => setShowRegister(false)}
+                className="w-full border-2 border-gray-300 text-gray-700 py-3 rounded hover:bg-gray-50 transition-colors font-medium"
+              >
+                Back to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
@@ -322,6 +493,14 @@ export default function App() {
             >
               Login
             </button>
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setShowRegister(true)}
+                className="text-cyan-600 hover:text-cyan-700 text-sm font-medium"
+              >
+                Don't have an account? Request Access →
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -354,17 +533,34 @@ export default function App() {
               </button>
               
               {user.is_admin && (
-                <button
-                  onClick={() => setView('create')}
-                  className={`px-4 py-2 rounded flex items-center gap-2 transition-colors text-sm font-medium ${
-                    view === 'create' 
-                      ? 'bg-cyan-500 text-white' 
-                      : 'text-gray-300 hover:bg-gray-800'
-                  }`}
-                >
-                  <Plus className="w-4 h-4" />
-                  Create
-                </button>
+                <>
+                  <button
+                    onClick={() => setView('create')}
+                    className={`px-4 py-2 rounded flex items-center gap-2 transition-colors text-sm font-medium ${
+                      view === 'create' 
+                        ? 'bg-cyan-500 text-white' 
+                        : 'text-gray-300 hover:bg-gray-800'
+                    }`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setView('admin');
+                      fetchPendingUsers();
+                    }}
+                    className={`px-4 py-2 rounded flex items-center gap-2 transition-colors text-sm font-medium ${
+                      view === 'admin' 
+                        ? 'bg-cyan-500 text-white' 
+                        : 'text-gray-300 hover:bg-gray-800'
+                    }`}
+                  >
+                    <Users className="w-4 h-4" />
+                    Admin
+                  </button>
+                </>
               )}
               
               <div className="flex items-center gap-3 pl-4 ml-4 border-l border-gray-700">
@@ -676,6 +872,215 @@ export default function App() {
         )}
 
         {view === 'create' && user.is_admin && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 uppercase tracking-wide">Create New Prediction Market</h2>
+            
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Market Question *</label>
+                  <input
+                    type="text"
+                    value={newMarket.question}
+                    onChange={(e) => setNewMarket({...newMarket, question: e.target.value})}
+                    placeholder="e.g., Will 2025 be in Australia's top 5 warmest years on record?"
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Description</label>
+                  <textarea
+                    value={newMarket.description}
+                    onChange={(e) => setNewMarket({...newMarket, description: e.target.value})}
+                    placeholder="Provide context and background for this prediction market..."
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Category *</label>
+                    <select
+                      value={newMarket.category}
+                      onChange={(e) => setNewMarket({...newMarket, category: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option>Temperature</option>
+                      <option>Rainfall</option>
+                      <option>Energy</option>
+                      <option>Marine</option>
+                      <option>Policy</option>
+                      <option>Economics</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Resolution Type *</label>
+                    <select
+                      value={newMarket.resolutionType}
+                      onChange={(e) => setNewMarket({...newMarket, resolutionType: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option value="quantitative">Quantitative (Data-based)</option>
+                      <option value="qualitative">Qualitative (Expert Consensus)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Close Date *</label>
+                  <input
+                    type="datetime-local"
+                    value={newMarket.closeDate}
+                    onChange={(e) => setNewMarket({...newMarket, closeDate: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                {newMarket.resolutionType === 'quantitative' && (
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Data Source</label>
+                    <input
+                      type="text"
+                      value={newMarket.dataSource}
+                      onChange={(e) => setNewMarket({...newMarket, dataSource: e.target.value})}
+                      placeholder="e.g., Bureau of Meteorology, AEMO NEM Dashboard"
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Resolution Criteria *</label>
+                  <textarea
+                    value={newMarket.resolutionCriteria}
+                    onChange={(e) => setNewMarket({...newMarket, resolutionCriteria: e.target.value})}
+                    placeholder={
+                      newMarket.resolutionType === 'quantitative' 
+                        ? "Describe exactly how this market will be resolved using data..."
+                        : "Describe how expert consensus will determine the outcome..."
+                    }
+                    rows={4}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={() => setView('markets')}
+                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded hover:bg-gray-50 font-bold uppercase tracking-wide transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateMarket}
+                    className="flex-1 px-6 py-3 bg-cyan-500 text-white rounded hover:bg-cyan-600 font-bold uppercase tracking-wide transition-colors"
+                  >
+                    Create Market
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'admin' && user.is_admin && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 uppercase tracking-wide">User Management</h2>
+            
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wide">Pending Approval</h3>
+              
+              {pendingUsers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">No pending user applications</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingUsers.map((pendingUser) => (
+                    <div key={pendingUser.id} className="border border-gray-200 rounded-lg p-4 hover:border-cyan-300 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900 mb-1">{pendingUser.full_name}</h4>
+                          <p className="text-sm text-gray-600 mb-1">{pendingUser.email}</p>
+                          <p className="text-sm text-gray-700 font-medium mb-2">{pendingUser.organization}</p>
+                          {pendingUser.expertise_area && (
+                            <p className="text-xs text-cyan-600 mb-2">
+                              <span className="font-semibold">Expertise:</span> {pendingUser.expertise_area}
+                            </p>
+                          )}
+                          {pendingUser.bio && (
+                            <p className="text-sm text-gray-600 mt-2 leading-relaxed">{pendingUser.bio}</p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">
+                            Applied: {new Date(pendingUser.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => approveUser(pendingUser.id)}
+                          className="ml-4 px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors font-medium text-sm"
+                        >
+                          Approve
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {view === 'admin' && user.is_admin && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 uppercase tracking-wide">User Management</h2>
+            
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wide">Pending Approval</h3>
+              
+              {pendingUsers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">No pending user applications</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingUsers.map((pendingUser) => (
+                    <div key={pendingUser.id} className="border border-gray-200 rounded-lg p-4 hover:border-cyan-300 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900 mb-1">{pendingUser.full_name}</h4>
+                          <p className="text-sm text-gray-600 mb-1">{pendingUser.email}</p>
+                          <p className="text-sm text-gray-700 font-medium mb-2">{pendingUser.organization}</p>
+                          {pendingUser.expertise_area && (
+                            <p className="text-xs text-cyan-600 mb-2">
+                              <span className="font-semibold">Expertise:</span> {pendingUser.expertise_area}
+                            </p>
+                          )}
+                          {pendingUser.bio && (
+                            <p className="text-sm text-gray-600 mt-2 leading-relaxed">{pendingUser.bio}</p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">
+                            Applied: {new Date(pendingUser.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => approveUser(pendingUser.id)}
+                          className="ml-4 px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors font-medium text-sm"
+                        >
+                          Approve
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6 uppercase tracking-wide">Create New Prediction Market</h2>
             
