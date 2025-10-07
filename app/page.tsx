@@ -24,7 +24,7 @@ export default function App() {
       localStorage.setItem('token', data.token);
       setUser(data.user);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Login failed');
     }
   }
 
