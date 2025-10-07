@@ -12,6 +12,17 @@ type User = {
   is_admin: boolean;
 };
 
+
+type PendingUser = {
+  id: string | number;
+  email: string;
+  full_name: string;
+  organization?: string;
+  expertise_area?: string;
+  bio?: string;
+  created_at: string;
+};
+
 type Market = {
   id: string;
   question: string;
@@ -36,7 +47,7 @@ type Prediction = {
   created_at: string;
   predictor_name: string;
   is_mine: boolean;
-};
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -487,7 +498,7 @@ export default function App() {
                 placeholder="••••••••"
               />
             </div>
-            <button
+                Don&apos;t have an account? Request Access →
               onClick={handleLogin}
               className="w-full bg-cyan-500 text-white py-3 rounded hover:bg-cyan-600 transition-colors font-medium"
             >
@@ -1034,6 +1045,166 @@ export default function App() {
           </div>
         )}
 
+        {view === 'admin' && user.is_admin && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 uppercase tracking-wide">User Management</h2>
+            
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wide">Pending Approval</h3>
+              
+              {pendingUsers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">No pending user applications</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingUsers.map((pendingUser) => (
+                    <div key={pendingUser.id} className="border border-gray-200 rounded-lg p-4 hover:border-cyan-300 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900 mb-1">{pendingUser.full_name}</h4>
+                          <p className="text-sm text-gray-600 mb-1">{pendingUser.email}</p>
+                          <p className="text-sm text-gray-700 font-medium mb-2">{pendingUser.organization}</p>
+                          {pendingUser.expertise_area && (
+                            <p className="text-xs text-cyan-600 mb-2">
+                              <span className="font-semibold">Expertise:</span> {pendingUser.expertise_area}
+                            </p>
+                          )}
+                          {pendingUser.bio && (
+                            <p className="text-sm text-gray-600 mt-2 leading-relaxed">{pendingUser.bio}</p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">
+                            Applied: {new Date(pendingUser.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => approveUser(pendingUser.id)}
+                          className="ml-4 px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors font-medium text-sm"
+                        >
+                          Approve
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 uppercase tracking-wide">Create New Prediction Market</h2>
+            
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Market Question *</label>
+                  <input
+                    type="text"
+                    value={newMarket.question}
+                    onChange={(e) => setNewMarket({...newMarket, question: e.target.value})}
+                    placeholder="e.g., Will 2025 be in Australia's top 5 warmest years on record?"
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Description</label>
+                  <textarea
+                    value={newMarket.description}
+                    onChange={(e) => setNewMarket({...newMarket, description: e.target.value})}
+                    placeholder="Provide context and background for this prediction market..."
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Category *</label>
+                    <select
+                      value={newMarket.category}
+                      onChange={(e) => setNewMarket({...newMarket, category: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option>Temperature</option>
+                      <option>Rainfall</option>
+                      <option>Energy</option>
+                      <option>Marine</option>
+                      <option>Policy</option>
+                      <option>Economics</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Resolution Type *</label>
+                    <select
+                      value={newMarket.resolutionType}
+                      onChange={(e) => setNewMarket({...newMarket, resolutionType: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option value="quantitative">Quantitative (Data-based)</option>
+                      <option value="qualitative">Qualitative (Expert Consensus)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Close Date *</label>
+                  <input
+                    type="datetime-local"
+                    value={newMarket.closeDate}
+                    onChange={(e) => setNewMarket({...newMarket, closeDate: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                {newMarket.resolutionType === 'quantitative' && (
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Data Source</label>
+                    <input
+                      type="text"
+                      value={newMarket.dataSource}
+                      onChange={(e) => setNewMarket({...newMarket, dataSource: e.target.value})}
+                      placeholder="e.g., Bureau of Meteorology, AEMO NEM Dashboard"
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Resolution Criteria *</label>
+                  <textarea
+                    value={newMarket.resolutionCriteria}
+                    onChange={(e) => setNewMarket({...newMarket, resolutionCriteria: e.target.value})}
+                    placeholder={
+                      newMarket.resolutionType === 'quantitative' 
+                        ? "Describe exactly how this market will be resolved using data..."
+                        : "Describe how expert consensus will determine the outcome..."
+                    }
+                    rows={4}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={() => setView('markets')}
+                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded hover:bg-gray-50 font-bold uppercase tracking-wide transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateMarket}
+                    className="flex-1 px-6 py-3 bg-cyan-500 text-white rounded hover:bg-cyan-600 font-bold uppercase tracking-wide transition-colors"
+                  >
+                    Create Market
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <footer className="bg-black border-t border-gray-800 mt-12">
