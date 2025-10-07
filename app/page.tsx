@@ -348,10 +348,15 @@ export default function App() {
     if (!selectedMarket) return;
     
     setError('');
-    const endpoint = editingPrediction 
-      ? `${API_URL}/predictions/${editingPrediction.id}`
+    
+    // Check if user already has a prediction (defensive check)
+    const existingPrediction = predictions.find(p => p.is_mine);
+    const predictionToEdit = editingPrediction || existingPrediction;
+    
+    const endpoint = predictionToEdit 
+      ? `${API_URL}/predictions/${predictionToEdit.id}`
       : `${API_URL}/predictions`;
-    const method = editingPrediction ? 'PUT' : 'POST';
+    const method = predictionToEdit ? 'PUT' : 'POST';
     
     fetch(endpoint, {
       method: method,
@@ -1068,95 +1073,124 @@ export default function App() {
 
             {selectedMarket.status === 'open' && (
               <div className="bg-white rounded-lg border border-cyan-200 p-6 mb-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wide">
-                  {editingPrediction ? 'Update Your Prediction' : 'Submit Your Prediction'}
-                </h3>
-                {editingPrediction && (
-                  <div className="mb-4 p-3 bg-cyan-50 border-l-4 border-cyan-500 text-cyan-700 rounded flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold">Editing your prediction</p>
-                      <button
-                        onClick={() => {
-                          setEditingPrediction(null);
-                          setPredictionValue(50);
-                          setConfidence('medium');
-                          setReasoning('');
-                          setIsAnonymous(false);
-                        }}
-                        className="text-sm underline mt-1"
-                      >
-                        Cancel edit
-                      </button>
-                    </div>
-                  </div>
-                )}
-                <div className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">
-                      Probability Forecast: <span className="text-cyan-600">{predictionValue}%</span>
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={predictionValue}
-                      onChange={(e) => setPredictionValue(parseInt(e.target.value))}
-                      className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-2 font-medium">
-                      <span>0% (Very Unlikely)</span>
-                      <span>50% (Uncertain)</span>
-                      <span>100% (Very Likely)</span>
-                    </div>
-                  </div>
+                {(() => {
+                  const myExistingPrediction = predictions.find(p => p.is_mine);
+                  
+                  if (myExistingPrediction && !editingPrediction) {
+                    return (
+                      <div className="text-center py-8">
+                        <div className="mb-6">
+                          <div className="inline-block p-4 bg-cyan-50 rounded-full mb-4">
+                            <AlertCircle className="w-8 h-8 text-cyan-600" />
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">You've Already Predicted</h3>
+                          <p className="text-gray-600 mb-1">Your current prediction: <span className="font-bold text-cyan-600 text-2xl">{Number(myExistingPrediction.prediction).toFixed(0)}%</span></p>
+                          <p className="text-sm text-gray-500">Confidence: {myExistingPrediction.confidence}</p>
+                        </div>
+                        <button
+                          onClick={() => handleEditPrediction(myExistingPrediction)}
+                          className="px-8 py-3 bg-cyan-500 text-white rounded hover:bg-cyan-600 font-bold uppercase tracking-wide transition-colors"
+                        >
+                          Update Your Prediction
+                        </button>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <>
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase tracking-wide">
+                        {editingPrediction ? 'Update Your Prediction' : 'Submit Your Prediction'}
+                      </h3>
+                      {editingPrediction && (
+                        <div className="mb-4 p-3 bg-cyan-50 border-l-4 border-cyan-500 text-cyan-700 rounded flex items-start gap-2">
+                          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                          <div>
+                            <p className="font-semibold">Editing your prediction</p>
+                            <button
+                              onClick={() => {
+                                setEditingPrediction(null);
+                                setPredictionValue(50);
+                                setConfidence('medium');
+                                setReasoning('');
+                                setIsAnonymous(false);
+                              }}
+                              className="text-sm underline mt-1"
+                            >
+                              Cancel edit
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      <div className="space-y-5">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">
+                            Probability Forecast: <span className="text-cyan-600">{predictionValue}%</span>
+                          </label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={predictionValue}
+                            onChange={(e) => setPredictionValue(parseInt(e.target.value))}
+                            className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                          />
+                          <div className="flex justify-between text-xs text-gray-500 mt-2 font-medium">
+                            <span>0% (Very Unlikely)</span>
+                            <span>50% (Uncertain)</span>
+                            <span>100% (Very Likely)</span>
+                          </div>
+                        </div>
 
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Confidence Level</label>
-                    <select
-                      value={confidence}
-                      onChange={(e) => setConfidence(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                    </select>
-                  </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Confidence Level</label>
+                          <select
+                            value={confidence}
+                            onChange={(e) => setConfidence(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                          </select>
+                        </div>
 
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Reasoning (Optional)</label>
-                    <textarea
-                      value={reasoning}
-                      onChange={(e) => setReasoning(e.target.value)}
-                      placeholder="Explain your forecast and the factors you considered..."
-                      rows={4}
-                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                    />
-                  </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Reasoning (Optional)</label>
+                          <textarea
+                            value={reasoning}
+                            onChange={(e) => setReasoning(e.target.value)}
+                            placeholder="Explain your forecast and the factors you considered..."
+                            rows={4}
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          />
+                        </div>
 
-                  <div className="border-t border-gray-200 pt-4">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isAnonymous}
-                        onChange={(e) => setIsAnonymous(e.target.checked)}
-                        className="w-5 h-5 text-cyan-500 border-gray-300 rounded focus:ring-cyan-500"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Submit anonymously</span>
-                    </label>
-                    <p className="text-xs text-gray-500 mt-2 ml-8">
-                      Anonymous predictions will not count towards your leaderboard score or public profile
-                    </p>
-                  </div>
+                        <div className="border-t border-gray-200 pt-4">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isAnonymous}
+                              onChange={(e) => setIsAnonymous(e.target.checked)}
+                              className="w-5 h-5 text-cyan-500 border-gray-300 rounded focus:ring-cyan-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Submit anonymously</span>
+                          </label>
+                          <p className="text-xs text-gray-500 mt-2 ml-8">
+                            Anonymous predictions will not count towards your leaderboard score or public profile
+                          </p>
+                        </div>
 
-                  <button
-                    onClick={handleSubmitPrediction}
-                    className="w-full bg-cyan-500 text-white py-3 rounded hover:bg-cyan-600 font-bold uppercase tracking-wide transition-colors"
-                  >
-                    {editingPrediction ? 'Update Prediction' : 'Submit Prediction'}
-                  </button>
-                </div>
+                        <button
+                          onClick={handleSubmitPrediction}
+                          className="w-full bg-cyan-500 text-white py-3 rounded hover:bg-cyan-600 font-bold uppercase tracking-wide transition-colors"
+                        >
+                          {editingPrediction ? 'Update Prediction' : 'Submit Prediction'}
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             )}
 
