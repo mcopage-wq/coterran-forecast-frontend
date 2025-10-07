@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -9,7 +9,7 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  async function handleLogin(e) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
