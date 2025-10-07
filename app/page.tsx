@@ -504,11 +504,11 @@ export default function App() {
                   <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">Total Predictions</p>
                   <p className="font-bold text-gray-900">{selectedMarket.prediction_count}</p>
                 </div>
-                {selectedMarket.median_prediction !== null && (
+                {selectedMarket.median_prediction !== null && selectedMarket.median_prediction !== undefined && (
                   <>
                     <div>
                       <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">Consensus (Median)</p>
-                      <p className="text-3xl font-bold text-cyan-600">{selectedMarket.median_prediction.toFixed(1)}%</p>
+                      <p className="text-3xl font-bold text-cyan-600">{selectedMarket.median_prediction?.toFixed(1)}%</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 uppercase tracking-wide mb-1">Mean Prediction</p>
