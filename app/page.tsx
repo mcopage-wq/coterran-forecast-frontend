@@ -50,6 +50,14 @@ type PendingUser = {
   created_at: string;
 };
 
+type LeaderboardEntry = {
+  user_id: string;
+  user_name: string;
+  prediction_count: number;
+  brier_score: number;
+  avg_confidence: string;
+};
+
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -78,7 +86,7 @@ export default function App() {
   const [reasoning, setReasoning] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [editingPrediction, setEditingPrediction] = useState<Prediction | null>(null);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [newMarket, setNewMarket] = useState({
     question: '',
     description: '',
@@ -142,7 +150,7 @@ export default function App() {
       if (response.ok) {
         const data = await response.json();
         // Filter out anonymous entries
-        const filteredLeaderboard = data.leaderboard?.filter((entry: any) => 
+        const filteredLeaderboard = data.leaderboard?.filter((entry: LeaderboardEntry) => 
           !entry.user_name?.toLowerCase().includes('anonymous')
         ) || [];
         setLeaderboard(filteredLeaderboard);
