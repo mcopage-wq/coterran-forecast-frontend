@@ -1,18 +1,51 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Calendar, TrendingUp, Users, Plus, LogOut, Award, AlertCircle, BarChart3 } from 'lucide-react';
+import { Calendar, Users, Plus, LogOut, Award, AlertCircle, BarChart3 } from 'lucide-react';
 
 const API_URL = 'https://coterran-forecast-production.up.railway.app/api';
 
+type User = {
+  id: string;
+  email: string;
+  full_name: string;
+  organization: string;
+  is_admin: boolean;
+};
+
+type Market = {
+  id: string;
+  question: string;
+  description: string;
+  category: string;
+  close_date: string;
+  status: string;
+  outcome?: number;
+  resolution_source?: string;
+  data_source?: string;
+  prediction_count: number;
+  median_prediction?: number;
+  mean_prediction?: number;
+};
+
+type Prediction = {
+  id: string;
+  prediction: number;
+  confidence: string;
+  reasoning: string;
+  created_at: string;
+  predictor_name: string;
+  is_mine: boolean;
+};
+
 export default function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [view, setView] = useState('markets');
-  const [markets, setMarkets] = useState([]);
-  const [selectedMarket, setSelectedMarket] = useState(null);
-  const [predictions, setPredictions] = useState([]);
+  const [view, setView] = useState<'markets' | 'create' | 'detail'>('markets');
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [predictionValue, setPredictionValue] = useState(50);
   const [confidence, setConfidence] = useState('medium');
@@ -45,7 +78,7 @@ export default function App() {
     }
   }, [user]);
 
-  async function fetchCurrentUser(token) {
+  async function fetchCurrentUser(token: string) {
     try {
       const response = await fetch(`${API_URL}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -59,7 +92,7 @@ export default function App() {
     }
   }
 
-  function handleLogin(e) {
+  function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     fetch(`${API_URL}/auth/login`, {
@@ -106,7 +139,7 @@ export default function App() {
     setLoading(false);
   }
 
-  async function fetchMarketDetail(marketId) {
+  async function fetchMarketDetail(marketId: string) {
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/markets/${marketId}`, {
@@ -124,7 +157,7 @@ export default function App() {
     setLoading(false);
   }
 
-  function handleCreateMarket(e) {
+  function handleCreateMarket(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     fetch(`${API_URL}/markets`, {
@@ -168,7 +201,7 @@ export default function App() {
     });
   }
 
-  function handleSubmitPrediction(e) {
+  function handleSubmitPrediction(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedMarket) return;
     
@@ -206,7 +239,7 @@ export default function App() {
     });
   }
 
-  function handleResolveMarket(e) {
+  function handleResolveMarket(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedMarket) return;
 
