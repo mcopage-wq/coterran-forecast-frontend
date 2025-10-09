@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Calendar, Users, Plus, LogOut, Award, AlertCircle, BarChart3, Home } from 'lucide-react';
+import { OdssDisplay,AnalyticsChart } from './OddsComponents';
 
 const API_URL = 'https://coterran-forecast-production.up.railway.app/api';
 
@@ -754,9 +755,7 @@ export default function App() {
                     <p className="font-semibold text-gray-900 text-sm">{market.question}</p>
                     <div className="flex justify-between items-center mt-2">
                       <span className="text-xs text-gray-600">{market.prediction_count} predictions</span>
-                      <span className="text-xs font-bold text-cyan-600">
-                        {market.median_prediction ? `${Number(market.median_prediction).toFixed(0)}%` : 'N/A'}
-                      </span>
+                      <OddsDisplay marketId={market.id} compact={true} />
                     </div>
                   </div>
                 ))}
@@ -864,11 +863,8 @@ export default function App() {
                     
                     <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
                       <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Predictions</p>
-                        <p className="font-bold text-gray-900 flex items-center gap-1">
-                          <Users className="w-4 h-4 text-cyan-500" />
-                          {market.prediction_count}
-                        </p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Market Odds</p>
+                        <OddsDisplay marketId={market.id} compact={true} />
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Consensus</p>
@@ -1070,6 +1066,16 @@ export default function App() {
                 </div>
               )}
             </div>
+
+            {/* Full Odds Display */}
+              <div className="mb-6">
+                <OddsDisplay marketId={selectedMarket.id} compact={false} />
+              </div>
+
+            {/* Analytics Chart */}
+              <div className="mb-6">
+                <AnalyticsChart marketId={selectedMarket.id} />
+              </div>
 
             {selectedMarket.status === 'open' && (
               <div className="bg-white rounded-lg border border-cyan-200 p-6 mb-6">
