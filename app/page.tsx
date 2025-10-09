@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Calendar, Users, Plus, LogOut, Award, AlertCircle, BarChart3, Home } from 'lucide-react';
-import { OdssDisplay,AnalyticsChart } from './OddsComponents';
+import { OddsDisplay, AnalyticsChart } from './OddsComponents';
 
 const API_URL = 'https://coterran-forecast-production.up.railway.app/api';
 
